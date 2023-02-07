@@ -1,5 +1,5 @@
 # TLXNLP
 
-A Multi-backend Natural Language Processing Application Library
+A Platform-agnostic Natural Language Processing Application Library
 
 
