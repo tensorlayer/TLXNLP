@@ -1,1 +1,4 @@
 tensorlayerx>=0.5.8
+rouge_score
+sentencepiece
+sacrebleu
