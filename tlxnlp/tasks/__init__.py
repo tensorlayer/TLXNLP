@@ -1,2 +1,3 @@
 from .text_classification import TextClassification
 from .text_token_classification import TextTokenClassification
+from .text_conditional_generation import TextForConditionalGeneration
