@@ -79,18 +79,17 @@ class Text2TextData(Datasets):
             if not os.path.exists(p):
                 unzip_file(p + ".gz", path)
 
-        src_train_path, dst_train_path = en_path, fr_path
-        src_dev_path, dst_dev_path = (
-            os.path.join(path, en_test_file),
-            os.path.join(path, fr_test_file),
-        )
-
         en_test_file = "newstest2014-fren-en.txt"
         fr_test_file = "newstest2014-fren-fr.txt"
         test_url = "https://github.com/tensorlayer/TLXZoo/tree/main/demo/text/nmt/t5/"
         for file in (en_test_file, fr_test_file):
             maybe_download_and_extract(file, path, test_url, extract=True)
 
+        src_train_path, dst_train_path = en_path, fr_path
+        src_dev_path, dst_dev_path = (
+            os.path.join(path, en_test_file),
+            os.path.join(path, fr_test_file),
+        )
         return cls(
             {
                 "train": FileDataSet(src_train_path, dst_train_path, limit=train_limit),
