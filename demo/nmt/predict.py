@@ -17,7 +17,7 @@ if __name__ == "__main__":
     )
 
     text = "Plane giants often trade blows on technical matters through advertising in the trade press."
-    x, y = transform(text, "")
+    x, _ = transform(text, "")
 
     inputs = tlx.convert_to_tensor([x["inputs"]], dtype=tlx.int64)
     attention_mask = tlx.convert_to_tensor([x["attention_mask"]], dtype=tlx.int64)

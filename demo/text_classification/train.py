@@ -5,7 +5,7 @@ import os
 os.environ["TL_BACKEND"] = "tensorflow"
 
 from tlxnlp.datasets import SST2
-from tlxnlp.tasks.text_classification import TextClassification, Trainer
+from tlxnlp.tasks.text_classification import TextClassification
 from tlxnlp.models.transform import BertTransform
 from tlxnlp.models import Bert
 from tensorlayerx.dataflow import DataLoader
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     optimizer = tlx.optimizers.Adam(lr=0.00001)
     loss_fn = model.loss_fn
     metric = tlx.metrics.Accuracy()
-    model = Trainer(network=model, loss_fn=loss_fn, optimizer=optimizer, metrics=metric)
+    model = tlx.model.Model(network=model, loss_fn=loss_fn, optimizer=optimizer, metrics=metric)
     model.train(
         n_epoch=1,
         train_dataset=train_dataloader,

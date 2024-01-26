@@ -28,13 +28,9 @@ if __name__ == "__main__":
     labels = ["O", "O", "B-ORG", "O", "O", "O", "O", "O", "O", "O", "O"]
     x, y = transform(tokens, labels)
 
-    inputs = tlx.convert_to_tensor([x["inputs"]])
-    token_type_ids = tlx.convert_to_tensor([x["token_type_ids"]])
-    attention_mask = tlx.convert_to_tensor([x["attention_mask"]])
+    x = {k: tlx.convert_to_tensor([v]) for k, v in x.items()}
 
-    logits = model(
-        inputs=inputs, token_type_ids=token_type_ids, attention_mask=attention_mask
-    )
+    logits = model(x)
 
     labels = tlx.argmax(logits, axis=-1)
     print(y)

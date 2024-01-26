@@ -1,5 +1,3 @@
-import time
-
 import tensorlayerx as tlx
 from tqdm import tqdm
 
@@ -85,60 +83,26 @@ class TextForConditionalGeneration(tlx.nn.Module):
             int(start_tokens[0][-1]) != self.backbone.eos_token_id
             and start_tokens.shape[1] < max_length
         ):
-            logits = self.forward(
-                inputs=inputs,
-                attention_mask=attention_mask,
-                decoder_input_ids=start_tokens,
-                encoder_outputs=encoder_outputs,
-            )
+            logits = self.forward({
+                "inputs": inputs,
+                "attention_mask": attention_mask,
+                "decoder_input_ids": start_tokens,
+                "encoder_outputs": encoder_outputs
+            })
             last_tokens = tlx.argmax(logits, -1)[:, -1:]
             start_tokens = tlx.concat([start_tokens, last_tokens], axis=-1)
         return start_tokens
 
-    def forward(
-        self,
-        inputs=None,
-        attention_mask=None,
-        labels=None,
-        decoder_input_ids=None,
-        decoder_attention_mask=None,
-        head_mask=None,
-        decoder_head_mask=None,
-        encoder_outputs=None,
-        past_key_values=None,
-        inputs_embeds=None,
-        decoder_inputs_embeds=None,
-        use_cache=None,
-        output_attentions=None,
-        output_hidden_states=None,
-        return_dict=None,
-        **kwargs
-    ):
+    def forward(self, x):
         if (
-            labels is not None
-            and decoder_input_ids is None
-            and decoder_inputs_embeds is None
+            "labels" in x
+            and "decoder_input_ids" not in x
+            and "decoder_inputs_embeds" not in x
         ):
             # get decoder inputs from shifting lm labels to the right
-            decoder_input_ids = self._shift_right(labels)
+            x["decoder_input_ids"] = self._shift_right(x["labels"])
 
-        decoder_outputs = self.backbone(
-            inputs=inputs,
-            attention_mask=attention_mask,
-            decoder_input_ids=decoder_input_ids,
-            decoder_attention_mask=decoder_attention_mask,
-            head_mask=head_mask,
-            decoder_head_mask=decoder_head_mask,
-            encoder_outputs=encoder_outputs,
-            past_key_values=past_key_values,
-            inputs_embeds=inputs_embeds,
-            decoder_inputs_embeds=decoder_inputs_embeds,
-            use_cache=use_cache,
-            output_attentions=output_attentions,
-            output_hidden_states=output_hidden_states,
-            return_dict=return_dict,
-            **kwargs
-        )
+        decoder_outputs = self.backbone(x)
         sequence_output = decoder_outputs[0]
 
         if self.tie_word_embeddings:
@@ -156,69 +120,13 @@ def valid_bleu(model, test_dataset, transform_fn):
     model.set_eval()
     targets = []
     predictions = []
-    for X_batch, y_batch in tqdm(test_dataset, total=float("inf")):
+    for X_batch, y_batch in tqdm(test_dataset):
         decode_id = model.generate_one(
             inputs=X_batch["inputs"], attention_mask=X_batch["attention_mask"]
         )
         decode_str = transform_fn(decode_id[0])
-        label_str = transform_fn(y_batch["labels"][0])
+        label_str = transform_fn(y_batch[0])
         targets.append(label_str)
         predictions.append(decode_str)
 
     print(bleu(targets, predictions))
-
-
-class Trainer(tlx.model.Model):
-    def tf_train(
-        self,
-        n_epoch,
-        train_dataset,
-        network,
-        loss_fn,
-        train_weights,
-        optimizer,
-        metrics,
-        print_train_batch,
-        print_freq,
-        test_dataset,
-    ):
-        import tensorflow as tf
-
-        for epoch in range(n_epoch):
-            start_time = time.time()
-
-            train_loss, train_acc, n_iter = 0, 0, 0
-            for X_batch, y_batch in train_dataset:
-                network.set_train()
-
-                with tf.GradientTape() as tape:
-                    _logits = network(**X_batch)
-                    _loss_ce = loss_fn(_logits, **y_batch)
-                grad = tape.gradient(_loss_ce, train_weights)
-                optimizer.apply_gradients(zip(grad, train_weights))
-
-                train_loss += _loss_ce
-                if metrics:
-                    metrics.update(_logits, y_batch)
-                    train_acc += metrics.result()
-                    metrics.reset()
-                n_iter += 1
-
-                if print_train_batch:
-                    print(
-                        "Epoch {} of {} {} took {}".format(
-                            epoch + 1, n_epoch, n_iter, time.time() - start_time
-                        )
-                    )
-                    print("   train loss: {}".format(train_loss / n_iter))
-
-            if epoch + 1 == 1 or (epoch + 1) % print_freq == 0:
-                print(
-                    "Epoch {} of {} took {}".format(
-                        epoch + 1, n_epoch, time.time() - start_time
-                    )
-                )
-                print("   train loss: {}".format(train_loss / n_iter))
-        if test_dataset is not None:
-            tran_func = test_dataset.dataset.transforms[0].ids_to_string
-            valid_bleu(network, test_dataset, tran_func)

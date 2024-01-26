@@ -1022,18 +1022,16 @@ class Bert(nn.Module):
         # )
         # self.dropout = tlx.layers.Dropout(classifier_dropout)
 
-    def forward(
-        self,
-        inputs=None,
-        attention_mask=None,
-        token_type_ids=None,
-        position_ids=None,
-        head_mask=None,
-        inputs_embeds=None,
-        output_attentions=None,
-        output_hidden_states=None,
-        **kwargs,
-    ):
+    def forward(self, x):
+        inputs = x.pop("inputs", None)
+        attention_mask = x.pop("attention_mask", None)
+        token_type_ids = x.pop("token_type_ids", None)
+        position_ids = x.pop("position_ids", None)
+        head_mask = x.pop("head_mask", None)
+        inputs_embeds = x.pop("inputs_embeds", None)
+        output_attentions = x.pop("output_attentions", None)
+        output_hidden_states = x.pop("output_hidden_states", None)
+
         outputs = self.bert(
             inputs=inputs,
             attention_mask=attention_mask,

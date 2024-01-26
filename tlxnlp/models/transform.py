@@ -208,7 +208,7 @@ class BertTransform(object):
             "inputs": np.array(ids),
             "attention_mask": np.array(attention_mask),
             "token_type_ids": np.zeros_like(np.array(ids)),
-        }, {"labels": np.array(labels)}
+        }, np.array(labels)
 
     def __call__(self, text, label, max_length=None):
         if self.task == "token":
@@ -218,7 +218,7 @@ class BertTransform(object):
         max_length = max_length if max_length else self.max_length
         inputs = self.string_to_ids(text, max_length=max_length)
         inputs["token_type_ids"] = np.zeros_like(inputs["inputs"])
-        return inputs, {"labels": label}
+        return inputs, label
 
 
 class BasicTokenizer(object):
@@ -926,7 +926,7 @@ class T5Transform(object):
             "inputs": np.array(ids),
             "attention_mask": np.array(attention_mask),
             "labels": np.array(labels),
-        }, {"labels": np.array(labels)}
+        }, np.array(labels)
 
     def __call__(self, text, label, source_max_length=None, label_max_length=None):
         if self.task == "token":
@@ -985,6 +985,5 @@ class T5Transform(object):
             labels = np.where(labels["attention_mask"], labels["inputs"], -100)
         else:
             labels = label
-        labels = {"labels": labels}
-        inputs.update(labels)
+        inputs["labels"] = labels
         return inputs, labels

@@ -27,7 +27,7 @@ def transformer(path, tags_set, task):
                     labels.append(tags)
                 tokens, tags = [], []
             else:
-                splits = line.split("\t")
+                splits = line.split(" ")
                 tokens.append(splits[0])
                 if task == "pos":
                     tags.append(tags_set.index(splits[1]))
@@ -45,7 +45,7 @@ def read_tags(path, task):
             if line.startswith("-DOCSTART-") or line == "" or line == "\n":
                 ...
             else:
-                splits = line.split("\t")
+                splits = line.split(" ")
                 if task == "pos":
                     tags_set.add(splits[1])
                 elif task == "chunk":

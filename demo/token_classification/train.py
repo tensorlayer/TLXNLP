@@ -5,11 +5,22 @@ import os
 os.environ["TL_BACKEND"] = "tensorflow"
 
 from tlxnlp.datasets import Conll2003
-from tlxnlp.tasks.text_token_classification import TextTokenClassification, Trainer
+from tlxnlp.tasks.text_token_classification import TextTokenClassification
 from tlxnlp.models.transform import BertTransform
 from tlxnlp.models import Bert
 from tensorlayerx.dataflow import DataLoader
 import tensorlayerx as tlx
+
+
+class TokenClassificationAccuracy(tlx.metrics.Accuracy):
+    def update(self, logits, y_batch):
+        for logit, y in zip(logits, y_batch):
+            mask = tlx.cast(tlx.not_equal(y, -100), dtype=tlx.int32)
+            mask_sum = int(tlx.reduce_sum(mask))
+            y = y[1 : mask_sum + 1]
+            logit = logit[1 : mask_sum + 1]
+            super().update(logit, y)
+
 
 if __name__ == "__main__":
     datas = Conll2003.load("./data/conll2003", task="ner")
@@ -27,8 +38,8 @@ if __name__ == "__main__":
     backbone = Bert()
     model = TextTokenClassification(backbone, n_class=9)
     optimizer = tlx.optimizers.Adam(lr=0.00001)
-    metric = tlx.metrics.Accuracy()
-    trainer = Trainer(
+    metric = TokenClassificationAccuracy()
+    trainer = tlx.model.Model(
         network=model, loss_fn=model.loss_fn, optimizer=optimizer, metrics=metric
     )
     trainer.train(

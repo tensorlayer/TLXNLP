@@ -102,23 +102,21 @@ class T5Model(nn.Module):
             name=name + "/decoder",
         )
 
-    def forward(
-        self,
-        inputs=None,
-        attention_mask=None,
-        decoder_input_ids=None,
-        decoder_attention_mask=None,
-        head_mask=None,
-        decoder_head_mask=None,
-        encoder_outputs=None,
-        past_key_values=None,
-        inputs_embeds=None,
-        decoder_inputs_embeds=None,
-        use_cache=None,
-        output_attentions=None,
-        output_hidden_states=None,
-        **kwargs,
-    ):
+    def forward(self, x):
+        inputs = x.pop("inputs", None)
+        attention_mask = x.pop("attention_mask", None)
+        decoder_input_ids = x.pop("decoder_input_ids", None)
+        decoder_attention_mask = x.pop("decoder_attention_mask", None)
+        head_mask = x.pop("head_mask", None)
+        decoder_head_mask = x.pop("decoder_head_mask", None)
+        encoder_outputs = x.pop("encoder_outputs", None)
+        past_key_values = x.pop("past_key_values", None)
+        inputs_embeds = x.pop("inputs_embeds", None)
+        decoder_inputs_embeds = x.pop("decoder_inputs_embeds", None)
+        use_cache = x.pop("use_cache", None)
+        output_attentions = x.pop("output_attentions", None)
+        output_hidden_states = x.pop("output_hidden_states", None)
+
         if head_mask is not None and decoder_head_mask is None:
             decoder_head_mask = head_mask
 

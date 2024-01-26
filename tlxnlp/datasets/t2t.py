@@ -42,12 +42,16 @@ class FileDataSet(IterableDataset, BaseDataSet):
     def __init__(self, *args, limit=None, **kwds):
         BaseDataSet.__init__(self, *args, **kwds)
         self.limit = limit
+        self.len = 0
+        with open(self.data) as f:
+            for _ in f:
+                self.len += 1
 
     def __getitem__(self, index):
         raise NotImplementedError
 
     def __len__(self):
-        raise NotImplementedError
+        return self.len
 
     def __iter__(self):
         yield from self.read(self.data, self.label, self.limit, self.transform)

@@ -4,13 +4,25 @@ from tensorlayerx.dataflow import DataLoader
 from tlxnlp.datasets import Text2TextData
 from tlxnlp.models import T5Model
 from tlxnlp.models.transform import T5Transform
-from tlxnlp.tasks.text_conditional_generation import (
-    TextForConditionalGeneration,
-    Trainer,
-)
+from tlxnlp.tasks.text_conditional_generation import TextForConditionalGeneration, valid_bleu
+
+
+class EmptyMetric(object):
+    def __init__(self):
+        return
+
+    def update(self, *args):
+        return
+
+    def result(self):
+        return 0.0
+
+    def reset(self):
+        return
+
 
 if __name__ == "__main__":
-    datas = Text2TextData.load("./data/t2t")
+    datas = Text2TextData.load("./data/t2t", train_limit=18)
     transform = T5Transform(
         vocab_file="./demo/text_classification/spiece.model",
         source_max_length=128,
@@ -26,7 +38,7 @@ if __name__ == "__main__":
     backbone = T5Model()
     model = TextForConditionalGeneration(backbone)
     optimizer = tlx.optimizers.Adam(lr=0.0001)
-    trainer = Trainer(network=model, loss_fn=model.loss_fn, optimizer=optimizer)
+    trainer = tlx.model.Model(network=model, loss_fn=model.loss_fn, optimizer=optimizer, metrics=EmptyMetric())
     trainer.train(
         n_epoch=1,
         train_dataset=train_dataloader,
@@ -35,3 +47,5 @@ if __name__ == "__main__":
         print_train_batch=True,
     )
     model.save_weights("./demo/nmt/model.npz")
+
+    valid_bleu(model, test_dataloader, transform.ids_to_string)
