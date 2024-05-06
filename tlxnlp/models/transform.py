@@ -6,6 +6,7 @@ from typing import List
 
 import numpy as np
 import sentencepiece as spm
+import tensorlayerx as tlx
 from tensorlayerx import logging
 
 
@@ -27,6 +28,44 @@ def whitespace_tokenize(text):
         return []
     tokens = text.split()
     return tokens
+
+
+class BasicEmbedding(object):
+    def __init__(self, vocab_size=3000, max_length=128):
+        self.max_length = max_length
+        self.vocab_size = vocab_size
+        self.pad_token = "[PAD]"
+
+    def _convert_token_to_id(self, token):
+        """Converts a token (str) in an id using the ascii."""
+        return ord(token)
+        # return self.vocab.get(token, self.vocab.get(self.unk_token))
+
+    def process_token(self, text):
+        ids = []
+        for token in text:
+            ids.append(self._convert_token_to_id(token))
+
+        if self.max_length is None:
+            pass
+        else:
+            if not isinstance(self.max_length, int):
+                raise ValueError(f"{self.max_length} is not int.")
+            else:
+                tokens_length = len(ids)
+                if tokens_length >= (self.max_length):
+                    ids = ids[: self.max_length]
+                else:
+                    ids = ids + [0] * (self.max_length - tokens_length)
+
+        return ids
+
+    def __call__(self, text, label):
+        tok = self.process_token(text)
+        return tlx.convert_to_tensor(tok), label
+
+    def get_vocab_size(self):
+        return self.vocab_size
 
 
 class BertTransform(object):
