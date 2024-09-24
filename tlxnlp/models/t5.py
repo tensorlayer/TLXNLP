@@ -1086,7 +1086,6 @@ class T5MainLayer(nn.Module):
         output_hidden_states=None,
         **kwargs,
     ):
-        print(input_ids)
         if input_ids is not None and inputs_embeds is not None:
             err_msg_prefix = "decoder_" if self.is_decoder else ""
             raise ValueError(
