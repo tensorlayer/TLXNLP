@@ -207,16 +207,16 @@ class T5EncoderModel(nn.Module):
             name=name + "/encoder",
         )
 
-    def forward(
-        self,
-        inputs=None,
-        attention_mask=None,
-        head_mask=None,
-        inputs_embeds=None,
-        output_attentions=None,
-        output_hidden_states=None,
-        **kwargs,
-    ):
+    def forward(self, x):
+        inputs = x.pop("inputs", None)
+        attention_mask = x.pop("attention_mask", None)
+        token_type_ids = x.pop("token_type_ids", None)
+        position_ids = x.pop("position_ids", None)
+        head_mask = x.pop("head_mask", None)
+        inputs_embeds = x.pop("inputs_embeds", None)
+        output_attentions = x.pop("output_attentions", None)
+        output_hidden_states = x.pop("output_hidden_states", None)
+
         encoder_outputs = self.encoder(
             inputs,
             attention_mask=attention_mask,
@@ -1086,6 +1086,7 @@ class T5MainLayer(nn.Module):
         output_hidden_states=None,
         **kwargs,
     ):
+        print(input_ids)
         if input_ids is not None and inputs_embeds is not None:
             err_msg_prefix = "decoder_" if self.is_decoder else ""
             raise ValueError(
