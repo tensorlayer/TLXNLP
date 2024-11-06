@@ -6,7 +6,7 @@ os.environ["TL_BACKEND"] = "tensorflow"
 
 from tlxnlp.tasks.text_classification import TextClassification
 from tlxnlp.models.transform import BertTransform
-from tlxnlp.models import Bert
+from tlxnlp.models import T5EncoderModel
 import tensorlayerx as tlx
 
 def device_info():
